@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>RxJS</title>
+<script src="https://code.jquery.com/jquery.min.js"></script>
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/4.0.6/rx.all.js"></script>
+
+
+<script src="https://code.jquery.com/jquery-2.1.4.js"></script>
+  <meta charset="utf-8">
+  <title>JS Bin</title>
+<style id="jsbin-css">
+ul{
+   list-style:none;
+}
+</style>
+</head>
+<body>
+  <div class="container jumbotron">
+    <div class="header">
+      <h3>Who to follow</h3><a href="#" class="refresh btn btn-info">Refresh</a>
+    </div>
+    <br>
+    <ul class="suggestions well">
+      <li class="suggestion1">
+        <img class="img-circle" width="50px" height="50px "/>
+        <a href="#" target="_blank" class="username">A user</a>
+         <a href="#" class="close close1">x</a>
+      </li>
+      <br>
+      <li class="suggestion2">
+        <img class="img-circle" width="50px" height="50px "/>
+        <a href="#" target="_blank" class="username">A second user</a>
+        <a href="#" class="close close2">x</a>
+      </li>
+      <br>
+      <li class="suggestion3">
+        <img class="img-circle" width="50px" height="50px "/>
+        <a href="#"  target="_blank" class="username">A third user</a>
+        <a href="#" class="close close3">x</a>
+      </li>
+    </ul>
+  </div>
+
+<script id="jsbin-javascript">
+var refreshButton = document.querySelector('.refresh');
+var closeButton1  = document.querySelector('.close1');
+var closeButton2  = document.querySelector('.close2');
+var closeButton3  = document.querySelector('.close3');
+
+var refreshClickStream = Rx.Observable.fromEvent(refreshButton,'click')
+var close1Clicks = Rx.Observable.fromEvent(closeButton1,'click')
+var close2Clicks = Rx.Observable.fromEvent(closeButton2,'click')
+var close3Clicks = Rx.Observable.fromEvent(closeButton3,'click')
+
+var starupRequestStream = Rx.Observable.just('https://api.github.com/users');
+
+
+var requestOnRefreshStream = refreshClickStream
+    .map(ev => {
+      var randomOffset = Math.floor(Math.random()*500);
+      return 'https://api.github.com/users?since='+randomOffset;
+    })
+
+
+var requestStream = requestOnRefreshStream.merge(starupRequestStream)
+
+var responseStream = requestStream
+  .flatMap(requestUrl =>
+    Rx.Observable.fromPromise(jQuery.getJSON(requestUrl))
+)
+.shareReplay(1)
+
+
+
+function getRandomUser(listUsers){
+  return listUsers[Math.floor(Math.random()*listUsers.length)]
+}
+
+function createSuggestionStream(responseStream, closeClickStream){
+  return responseStream.map(getRandomUser)
+   .startWith(null)
+   .merge(refreshClickStream.map(ev => null))
+   .merge(
+     closeClickStream.withLatestFrom(responseStream,
+           (x,R) => getRandomUser(R))
+   );
+}
+
+var suggestion1Stream = createSuggestionStream(responseStream, close1Clicks )
+var suggestion2Stream = createSuggestionStream(responseStream, close2Clicks )
+var suggestion3Stream = createSuggestionStream(responseStream, close3Clicks )
+
+
+function renderSuggestion(suggestedUser, selector){
+  var suggestionEl = document.querySelector(selector);
+  if(suggestedUser === null) {
+    suggestionEl.style.visibility = 'hidden';
+  }else{
+    suggestionEl.style.visibility = 'visible';
+    var usernameEl = suggestionEl.querySelector('.username');
+    usernameEl.href = suggestedUser.html_url;
+    usernameEl.textContent = suggestedUser.login;
+    var imgEl = suggestionEl.querySelector('img');
+    imgEl.src = "";
+    imgEl.src = suggestedUser.avatar_url;
+  }
+
+}
+
+
+suggestion1Stream.subscribe(user =>{
+ renderSuggestion(user,'.suggestion1')
+})
+
+
+
+
+suggestion2Stream.subscribe(user =>{
+ renderSuggestion(user,'.suggestion2')
+})
+
+
+
+suggestion3Stream.subscribe(user =>{
+ renderSuggestion(user,'.suggestion3')
+})
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{
+  "name": "study",
+  "version": "0.0.0",
+  "description": "Study about RxJS",
+  "main": "server.js",
+  "dependencies": {
+    "co-views": "^2.1.0",
+    "koa-static": "^1.4.9",
+    "koa-route": "^2.4.2",
+    "koa": "^1.0.0",
+    "babel-core":"5.3.3",
+    "babel-loader":"5.0.0"
+  },
+  "devDependencies": {
+   "webpack": "1.9.5"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IgorVieira/Study-RxJS.git"
+  },
+  "author": "Igor Vieira",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/IgorVieira/Study-RxJS/issues"
+  },
+  "homepage": "https://github.com/IgorVieira/Study-RxJS#readme"
+}
